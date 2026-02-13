@@ -185,6 +185,9 @@ input {
   fill: currentColor;
 }
 </style>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
 </head>
 
 <body>
@@ -303,13 +306,17 @@ function createFoodrink() {
 function changeQty(id, diff) {
   const el = document.getElementById(id);
   el.value = Math.max(0, Number(el.value) + diff);
+  localStorage.setItem(id, el.value);
+
   calc();
 }
 
 function resetAll() {
   document.querySelectorAll("input").forEach(el => el.value = 0);
+  localStorage.clear();
   calc();
 }
+
 
 function calc() {
   let qty = 0, price = 0;
@@ -341,7 +348,97 @@ createGroup("towel","tw",PRICE.towel);
 createRandom();
 createFoodrink();
 calc();
+
+function restoreValues() {
+  document.querySelectorAll("input").forEach(el => {
+    const saved = localStorage.getItem(el.id);
+    if (saved !== null) {
+      el.value = saved;
+    }
+  });
+  calc();
+}
+
+restoreValues();
+
+
+function saveAsImage() {
+  const area = document.getElementById("captureArea");
+  area.innerHTML = ""; // 初期化
+
+  let totalPrice = Number(document.getElementById("totalPrice").textContent.replace(/,/g,""));
+  let totalQty = Number(document.getElementById("totalQty").textContent);
+  let bonus = Math.floor(totalPrice / 2000);
+
+  // タイトル
+  area.innerHTML += `<h2>4th Anniv.購入リスト</h2>`;
+
+  // 商品一覧
+  document.querySelectorAll("input").forEach(el => {
+    const v = Number(el.value);
+    if (!v) return;
+
+    let name = "";
+    let price = 0;
+
+if (el.id.startsWith("ac_")) {
+  name = `アクスタ（${el.id.replace("ac_","")}）`;
+  price = PRICE.acrylic;
+
+} else if (el.id.startsWith("tw_")) {
+  name = `フェイスタオル（${el.id.replace("tw_","")}）`;
+  price = PRICE.towel;
+
+} else if (el.id === "shadow") {
+  name = "シャドーボックス";
+  price = PRICE.shadow;
+
+} else if (el.id === "bottle") {
+  name = "オリジナルボトル";
+  price = PRICE.bottle;
+
+} else if (el.id.startsWith("rd_")) {
+  // ★ ランダムはそのままでOK
+  name = el.id.replace("rd_","");
+  price = RANDOM_PRICE[name];
+
+} else if (el.id.startsWith("fd_")) {
+  // ★ 店内飲食もそのままでOK
+  name = el.id.replace("fd_","");
+  price = foodrink_PRICE[name];
+}
+
+    area.innerHTML += `
+      <div>
+        ${name}：${v}個（¥${(v * price).toLocaleString()}）
+      </div>
+    `;
+  });
+
+  // 合計
+  area.innerHTML += `
+    <hr>
+    <div>合計：${totalQty}点 / ¥${totalPrice.toLocaleString()}</div>
+    <div>特典：${bonus}枚</div>
+  `;
+
+  // 画像化
+  area.style.display = "block";
+area.style.width = "fit-content";   // ★ 追加：内容に合わせて横幅が決まる
+area.style.maxWidth = "100%";       // ★ 追加：スマホ画面からはみ出さないように
+
+  html2canvas(area, { scale: 2 }).then(canvas => {
+    const link = document.createElement("a");
+    link.href = canvas.toDataURL("image/png");
+    link.download = "NU:カーニバル4th_list.png";
+    link.click();
+    area.style.display = "none";
+  });
+}
+
 </script>
+
+
 
 <div class="creator">
   <a href="https://twitter.com/intent/tweet?url=https://zuf2.github.io/anicafe4thaniv/&text=ぬカニ4th Anniv.アニカフェ" target="_blank" rel="noopener" class="creator-link">
@@ -369,6 +466,14 @@ calc();
     </a>
   </div>
 </div>
+
+<div id="captureArea" style="
+  padding:20px;
+  font-size:14px;
+  display:none;
+  width: fit-content;
+  max-width: 100%;
+"></div>
 
 </body>
 </html>
