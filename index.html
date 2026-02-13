@@ -69,14 +69,11 @@ input {
   font-size: 16px;
 }
 
-.qty-btn {
-  width: 36px;
-  height: 36px;
-}
+/* 丸ボタン */
 .qty-btn,
 .save-btn,
 .reset-btn {
-  border-radius: 999px; /* 完全な丸 */
+  border-radius: 999px;
 }
 
 .qty-btn {
@@ -87,6 +84,24 @@ input {
   padding: 0;
 }
 
+.save-btn {
+  background: #e33;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+}
+
+.reset-btn {
+  background: #aaa;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+}
+.reset-btn:hover {
+  background: #888;
+}
+
+/* 上部固定バー（2行対応） */
 .summary-fixed {
   position: sticky;
   top: 0;
@@ -94,11 +109,12 @@ input {
   right: 0;
   background: #fff;
   border-bottom: 2px solid #e33;
-  padding: 10px 16px;
+  padding: 10px 12px;
   display: flex;
+  flex-wrap: wrap;       /* ← これで2行に折れる */
   justify-content: center;
   align-items: center;
-  gap: 20px;
+  gap: 12px;
   z-index: 10;
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
@@ -114,23 +130,32 @@ input {
   color: #e33;
 }
 
-.save-btn {
-  background: #e33;
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-}
+/* スマホ最適化（Xperia 5V 含む） */
+@media (max-width: 480px) {
+  .summary-fixed {
+    gap: 8px;
+    padding: 8px 8px;
+  }
 
-.reset-btn {
-  background: #aaa;
-  color: #fff;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 4px;
-}
-.reset-btn:hover {
-  background: #888;
+  .summary-inline {
+    font-size: 13px;
+  }
+
+  .bonus {
+    font-size: 11px;
+  }
+
+  .save-btn,
+  .reset-btn {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
 }
 
 /* 作成者情報 */
@@ -175,7 +200,7 @@ input {
     ¥<span id="totalPrice">0</span>
   </div>
 
-<span class="bonus" id="bonusText">特典：0枚（2,000円毎に1枚）</span>
+  <span class="bonus" id="bonusText">特典：0枚（2,000円毎に1枚）</span>
 
   <button class="reset-btn" onclick="resetAll()">リセット</button>
   <button class="save-btn" onclick="saveAsImage()">画像で保存</button>
@@ -289,9 +314,6 @@ function resetAll() {
 function calc() {
   let qty = 0, price = 0;
 
-document.getElementById("bonusText").textContent =
-  `特典：${Math.floor(price / 2000)}枚（2,000円毎に1枚）`;
-  
   document.querySelectorAll("input").forEach(el => {
     const v = Number(el.value);
     if (!v) return;
@@ -308,6 +330,10 @@ document.getElementById("bonusText").textContent =
 
   document.getElementById("totalQty").textContent = qty;
   document.getElementById("totalPrice").textContent = price.toLocaleString();
+
+  // ★ 特典枚数の自動計算
+  document.getElementById("bonusText").textContent =
+    `特典：${Math.floor(price / 2000)}枚（2,000円毎に1枚）`;
 }
 
 createGroup("acrylic","ac",PRICE.acrylic);
