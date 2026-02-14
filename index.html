@@ -197,6 +197,10 @@ input {
   <span class="title-main">アニカフェ</span>
 </h1>
 
+<div class="summary-inline">
+  購入済グッズ代：<input id="todayBought" type="number" value="0" style="width:80px;">
+</div>
+
 <div class="summary-fixed">
   <div class="summary-inline">
     合計：<span id="totalQty">0</span>点 /
@@ -322,6 +326,8 @@ function calc() {
   let qty = 0, price = 0;
 
   document.querySelectorAll("input").forEach(el => {
+    if (el.id === "todayBought") return;  // ★ 今日すでに買った金額は別扱い
+
     const v = Number(el.value);
     if (!v) return;
 
@@ -335,12 +341,15 @@ function calc() {
     else if (el.id.startsWith("fd_")) price += v * foodrink_PRICE[el.id.replace("fd_","")];
   });
 
-  document.getElementById("totalQty").textContent = qty;
-  document.getElementById("totalPrice").textContent = price.toLocaleString();
+  const todayBought = Number(document.getElementById("todayBought").value); // ★ 今日すでに買った金額
+  const total = price + todayBought; // ★ 今日の総額
 
-  // ★ 特典枚数の自動計算
+
+  document.getElementById("totalQty").textContent = qty;
+  document.getElementById("totalPrice").textContent = total.toLocaleString();
+
   document.getElementById("bonusText").textContent =
-    `特典：${Math.floor(price / 2000)}枚（2,000円毎に1枚）`;
+    `特典：${Math.floor(total / 2000)}枚（2,000円毎に1枚）`;
 }
 
 createGroup("acrylic","ac",PRICE.acrylic);
@@ -361,6 +370,18 @@ function restoreValues() {
 
 restoreValues();
 
+
+// 今日すでに買った金額の復元
+const savedToday = localStorage.getItem("todayBought");
+if (savedToday !== null) {
+  document.getElementById("todayBought").value = savedToday;
+}
+
+// 入力されたら保存して再計算
+document.getElementById("todayBought").addEventListener("input", () => {
+  localStorage.setItem("todayBought", document.getElementById("todayBought").value);
+  calc();
+});
 
 function saveAsImage() {
   const area = document.getElementById("captureArea");
